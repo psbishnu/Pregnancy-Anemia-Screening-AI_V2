@@ -1,0 +1,133 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pregnancy Anemia Screening · Offline AI</title><link rel="manifest" href="./manifest.webmanifest"><style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#17314b;background:#f1f5f9}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(110deg,#123c61,#197a9b);color:white;padding:22px 16px}header>div,main{max-width:1000px;margin:auto}h1{font-size:1.55rem;margin:0 0 8px}h2{font-size:1.1rem;margin:0 0 12px}.sub{opacity:.9;font-size:.9rem}main{padding:14px}.panel{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:17px;margin:12px 0;box-shadow:0 3px 15px #163d5910}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.views{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}.field label,.view label{font-size:.86rem;font-weight:650;display:block;margin-bottom:5px}input,select{width:100%;padding:11px;border:1px solid #b8c8d8;border-radius:8px;background:white;font:inherit}.view{border:1px solid #d6e1eb;border-radius:10px;padding:10px}.view img{display:none;width:100%;height:112px;object-fit:cover;border-radius:7px;margin-top:8px}.muted{color:#60758a;font-size:.84rem}.warn{color:#895b08;background:#fff8e6;padding:10px;border-radius:8px}.error{color:#9e1c2a;background:#fff0f0;padding:10px;border-radius:8px}.ok{color:#176447;background:#e8f7ef;padding:10px;border-radius:8px}.button{background:#14698c;color:white;border:0;border-radius:9px;padding:14px 18px;font-weight:750;font-size:1rem;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.secondary{background:#e6eef4;color:#234560}.result{font-size:1.35rem;font-weight:750}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#e9f2f7;border-radius:20px;padding:7px 12px;font-size:.85rem}.hidden{display:none}footer{font-size:.78rem;color:#65798b;text-align:center;padding:20px}progress{width:100%}
+/* Institutional branding */
+.headerwrap{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.brandblock{flex:1;min-width:240px}.logos{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.logo-item{text-align:center;font-size:.77rem;font-weight:650}.logo-item img{display:block;width:85px;height:65px;object-fit:contain;background:white;border-radius:9px;padding:6px;margin:0 auto 5px}
+.view{display:flex;flex-direction:column;gap:9px}.view input{order:0}.view img{order:1;margin-top:0!important;height:145px}.view label{order:2;margin:0!important;text-align:center;font-weight:750!important;padding:4px}.views{grid-template-columns:repeat(auto-fit,minmax(185px,1fr))}
+@media(max-width:640px){.headerwrap{justify-content:center;text-align:center}.logos{justify-content:center;width:100%}.logo-item img{width:75px;height:55px}}
+
+
+/* Three screening modes */
+.mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mode-option{display:block;border:2px solid #d6e1eb;padding:14px;border-radius:12px;cursor:pointer;background:#fff}
+.mode-option:has(input:checked){border-color:#14698c;background:#eaf6fc}
+.mode-option input{width:auto;margin:0 7px 9px 0;accent-color:#14698c}
+.mode-option strong{display:block;margin-bottom:5px}
+.mode-option small{font-size:.79rem;color:#526b80;line-height:1.4}
+.mode-section.inactive{opacity:.55}
+.mode-section.inactive input{pointer-events:none}
+@media(max-width:650px){.mode-grid{grid-template-columns:1fr}}
+</style></head><body><header><div class="headerwrap"><div class="brandblock"><h1>🩸 Pregnancy Anemia Screening</h1><div class="sub">Research-use offline AI · Seven-view pallor imaging + CBC · Local inference</div></div><div class="logos"><div class="logo-item"><img src="./logos/icmr.png" alt="ICMR logo"><span>ICMR</span></div><div class="logo-item"><img src="./logos/rims.png" alt="RIMS Ranchi logo"><span>RIMS Ranchi</span></div><div class="logo-item"><img src="./logos/bit.png" alt="BIT Mesra logo"><span>BIT Mesra</span></div></div></div></header><main><section id="medical-disclaimer" style="max-width:1000px;margin:16px auto;padding:18px;background:#fff3cd;border:2px solid #e3a008;border-radius:12px;color:#5c3900"><h2>Medical Disclaimer</h2><p><strong>Warning: This AI application may make mistakes.</strong> Results may include false-positive or false-negative anemia predictions.</p><p>This application is for research and educational purposes only and is not a medical diagnostic device. Image Only and CBC Only modes are experimental and have not been independently clinically validated.</p><p><strong>Do not make medical or treatment decisions based only on these predictions. Confirm results with laboratory hemoglobin testing and consult a qualified healthcare professional.</strong></p></section>
+<section class="panel"><h2>System status</h2><div id="status" class="warn">Checking locally installed ONNX runtime…</div><p class="muted">No network calls are made by this application. Serve this folder locally or package it as an Android app with bundled assets. Do not use the browser's File → Open for model inference.</p></section>
+<section class="panel"><h2>1. Patient details</h2><div class="grid"><div class="field"><label for="patient">Patient / Study ID</label><input id="patient" autocomplete="off" placeholder="Optional pseudonymous ID"></div><div class="field"><label for="age">Age (years)</label><input id="age" type="number" min="0" max="120" step="1" placeholder="e.g. 28"></div><div class="field"><label for="hb">Measured Hb (g/dL) · reference only</label><input id="hb" type="number" min="0" max="25" step="0.1" placeholder="Optional"></div></div><p class="muted">Measured Hb is never supplied to the neural network. Pregnancy details are not included in the trained model inputs.</p></section>
+<section class="panel" id="mode-panel"><h2>2. Select screening mode</h2>
+<div class="mode-grid" role="radiogroup" aria-label="Screening mode">
+<label class="mode-option"><input type="radio" name="screening_mode" value="image"/><strong>Image only</strong><small>At least 1 image. No CBC required. Exploratory median-imputed CBC ablation.</small></label>
+<label class="mode-option"><input type="radio" name="screening_mode" value="cbc"/><strong>CBC only</strong><small>At least 1 laboratory CBC value. No images required. Exploratory zero-image-mask ablation.</small></label>
+<label class="mode-option"><input type="radio" name="screening_mode" value="combined" checked/><strong>Images + CBC</strong><small>At least 1 image and 1 laboratory CBC value. Existing fusion-model workflow.</small></label>
+</div><p class="warn" id="mode-note" role="status"></p>
+</section>
+<section class="panel mode-section" id="cbc-panel"><h2>3. CBC laboratory values</h2><p class="muted">Enter available values. Leave unavailable measurements blank for checkpoint-specific median imputation. CBC-only and Images + CBC modes require at least one laboratory CBC value (besides age).</p><div id="cbc" class="grid"></div></section>
+<section class="panel mode-section" id="image-panel"><h2>4. Pallor photographs</h2><p class="muted">Select 1–7 images. Use the correct anatomical view. Seven images select the complete-case model; 1–6 select the missing-aware model.</p><div id="views" class="views"></div><p id="route" class="chip">0 / 7 images</p></section>
+<section class="panel"><h2>5. Run screening</h2><p class="warn">Research screening only — not a diagnosis. Model probabilities are not calibrated clinical risk estimates. Confirm findings with laboratory Hb and clinical assessment.</p><div class="chips"><button class="button" id="run">Run offline AI screening</button><button class="button secondary" id="clear">Clear inputs</button></div><p id="progress" class="muted" aria-live="polite"></p><div id="result" class="hidden" aria-live="polite"></div></section>
+</main><footer>Local-only inference · No remote server · Check model and browser compatibility before clinical research use</footer>
+<script src="./runtime/ort.min.js"></script><script>
+'use strict';
+const names=['Left_Eye','Right_Eye','Left_Nail','Right_Nail','Left_Palm','Right_Palm','Tongue'];
+const labels=['Left Eye','Right Eye','Left Nail','Right Nail','Left Palm','Right Palm','Tongue'];
+const displayOrder=[0,2,4,1,3,5,6];
+const cbcFields=[['cbc_TRBC','RBC / TRBC (10⁶/µL)'],['cbc_PCV','PCV / HCT (%)'],['cbc_MCV','MCV (fL)'],['cbc_MCH','MCH (pg)'],['cbc_MCHC','MCHC (g/dL)'],['cbc_RDW','RDW (%)'],['cbc_Reticulocyte_count','Reticulocyte count (10⁶/µL)'],['cbc_Reticulocyte_percent','Reticulocyte (%)']];
+const byId=x=>document.getElementById(x);const selected=()=>names.map(n=>byId('image_'+n).files[0]||null);let running=false;
+byId('cbc').innerHTML=cbcFields.map(([key,label])=>`<div class="field"><label for="${key}">${label}</label><input id="${key}" type="number" step="any" min="0" placeholder="Leave blank if missing"></div>`).join('');
+byId('views').innerHTML=displayOrder.map(i=>{const n=names[i];return `<div class="view"><input id="image_${n}" type="file" accept="image/*" capture="environment" aria-label="Upload ${labels[i]}"><img id="preview_${n}" alt="${labels[i]} preview"><label for="image_${n}">${labels[i]}</label></div>`}).join('');
+const currentMode=()=>document.querySelector('input[name="screening_mode"]:checked').value;
+const hasLabCBC=()=>cbcFields.some(([key])=>byId(key).value.trim()!=="");
+function setMode(){
+  const m=currentMode();
+  byId('cbc-panel').classList.toggle('inactive',m==='image');
+  byId('image-panel').classList.toggle('inactive',m==='cbc');
+  for(const [k] of cbcFields)byId(k).disabled=(m==='image');
+  for(const n of names)byId('image_'+n).disabled=(m==='cbc');
+  byId('age').disabled=(m==='image');
+  byId('mode-note').textContent=m==='combined'
+    ?'Fusion model: use at least one anatomical image AND one laboratory CBC measurement. This preserves the original input requirements.'
+    :m==='image'
+      ?'RESEARCH ABLATION ONLY: CBC and age entries are ignored and replaced with the model checkpoint medians. This is NOT a separately trained or clinically validated image-only model.'
+      :'RESEARCH ABLATION ONLY: all image views are zero-masked. This is NOT a separately trained or clinically validated CBC-only model. Outputs may be unreliable.';
+  byId('result').classList.add('hidden');
+  byId('progress').textContent='';
+  update();
+}
+document.querySelectorAll('input[name="screening_mode"]').forEach(r=>r.addEventListener('change',setMode));
+function update(){const count=selected().filter(Boolean).length,m=currentMode();byId('route').textContent=m==='cbc'?'No images needed · Experimental CBC-only ablation':`${count} / 7 images · ${count===7?'Complete-case model':count>0?'Missing-aware model':'No model selected'}`;}
+for(const n of names){byId('image_'+n).addEventListener('change',()=>{const img=byId('preview_'+n),file=byId('image_'+n).files[0];if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);if(file){img.dataset.url=URL.createObjectURL(file);img.src=img.dataset.url;img.style.display='block'}else{img.style.display='none'}update()})}
+const fmt=x=>(x*100).toFixed(1)+'%';const sigmoid=x=>1/(1+Math.exp(-x));
+function preprocessCBC(cfg, mode){const raw={cbc_Age:byId('age').value.trim()===''?null:Number(byId('age').value)};for(const [k] of cbcFields)raw[k]=byId(k).value.trim()===''?null:Number(byId(k).value);if(mode!=='image'&&!cbcFields.some(([k])=>raw[k]!==null))throw Error('Enter at least one laboratory CBC value. Age alone is insufficient.');const v=new Float32Array(cfg.columns.length);cfg.columns.forEach((k,i)=>{if(!(k in raw))throw Error('Unexpected CBC configuration field: '+k);const x=mode==='image'||raw[k]===null?cfg.median[i]:raw[k];if(!Number.isFinite(x)||x<0)throw Error('Invalid value for '+k);v[i]=Math.fround((Math.fround(x)-cfg.mean[i])/cfg.scale[i]);if(!Number.isFinite(v[i]))throw Error('CBC normalization failed')});return v}
+async function decode(file){const bitmap=await createImageBitmap(file);return bitmap}
+async function prepareImages(files,cfg){const size=cfg.image_size;if(size!==224)throw Error('Unexpected image size');const plane=size*size;const arr=new Float32Array(7*3*plane);const mask=new Float32Array(7);for(let v=0;v<7;v++){let pix=null;if(files[v]){const bmp=await decode(files[v]);const canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(bmp,0,0,size,size);bmp.close();pix=ctx.getImageData(0,0,size,size).data;mask[v]=1}for(let c=0;c<3;c++){const base=(v*3+c)*plane;const mean=cfg.image_mean[c],std=cfg.image_std[c];for(let p=0;p<plane;p++){const pixel=pix?pix[4*p+c]/255:0;arr[base+p]=(pixel-mean)/std}}}return {arr,mask}}
+async function run(){
+ if(running)return;
+ const mode=currentMode();
+ const files=mode==='cbc'?names.map(()=>null):selected();
+ const count=files.filter(Boolean).length;
+ const lab=hasLabCBC();
+ if(mode!=='cbc' && count<1){byId('progress').textContent='ERROR: Select at least one anatomical image for this mode.';return}
+ if(mode!=='image' && !lab){byId('progress').textContent='ERROR: Enter at least one laboratory CBC value; age alone is insufficient.';return}
+ if(typeof ort==='undefined'){byId('progress').textContent='ERROR: ONNX Runtime Web is missing.';return}
+ running=true;byId('run').disabled=true;byId('result').classList.add('hidden');
+ let session=null;
+ try{
+   // CBC-only always uses missing_aware checkpoint because its image mask is zero.
+   const key=(mode==='cbc'||count<7)?'missing_aware':'complete_case';
+   byId('progress').textContent='Loading '+key+' configuration…';
+   const response=await fetch('./models/'+key+'_config.json');
+   if(!response.ok)throw Error('Configuration file missing: '+key);
+   const cfg=await response.json();
+   if(JSON.stringify(cfg.views)!==JSON.stringify(names))throw Error('Model image view order mismatch');
+   const tab=preprocessCBC(cfg,mode);
+   byId('progress').textContent=mode==='cbc'?'Preparing zero-masked image branch…':'Preparing photographs…';
+   const {arr,mask}=await prepareImages(files,cfg);
+   byId('progress').textContent='Loading ONNX model locally…';
+   ort.env.wasm.numThreads=1;
+   ort.env.wasm.wasmPaths=new URL('./runtime/',document.baseURI).href;
+   session=await ort.InferenceSession.create('./models/'+key+'.onnx',{executionProviders:['wasm'],graphOptimizationLevel:'all'});
+   byId('progress').textContent='Running local neural network…';
+   const feeds={images:new ort.Tensor('float32',arr,[1,7,3,224,224]),view_mask:new ort.Tensor('float32',mask,[1,7]),tabular:new ort.Tensor('float32',tab,[1,9])};
+   const out=await session.run(feeds);
+   const logit=out.binary_logit.data[0];
+   const p=sigmoid(logit);
+   const raw=Array.from(out.severity_logits.data),mx=Math.max(...raw);
+   const exp=raw.map(x=>Math.exp(x-mx)),sum=exp.reduce((a,b)=>a+b,0);
+   const probs=exp.map(x=>x/sum),idx=probs.indexOf(Math.max(...probs));
+   const attention=Array.from(out.attention_weights.data);
+   if(!Number.isFinite(p)||probs.some(x=>!Number.isFinite(x))||attention.some(x=>!Number.isFinite(x)))
+       throw Error('Model returned a non-finite output for this modality combination. A separately trained model may be required.');
+   const anemic=p>=cfg.threshold;
+   const hb=byId('hb').value.trim();
+   const hbText=hb===''?'Not entered':(Number(hb)<11?'Anemic':'Non-Anemic')+' (study reference only)';
+   const expWarning=mode==='combined'
+       ?'Original image+CBC fusion workflow; browser–Python parity and external clinical validation are still required.'
+       :mode==='image'
+       ?'EXPERIMENTAL IMAGE-ONLY ABLATION: all CBC inputs, including age, were replaced by training medians. This model was not trained/validated as image-only; its probabilities and original threshold are not established for this setting.'
+       :'EXPERIMENTAL CBC-ONLY ABLATION: all seven image views were masked. This model was not trained/validated as CBC-only; its probabilities and original threshold are not established for this setting.';
+   const modeName={image:'Image only — experimental',cbc:'CBC only — experimental',combined:'Images + CBC'}[mode];
+   const safeID=byId('patient').value.replace(/[<>&"']/g,'');
+   const result=byId('result');
+   result.innerHTML=`<hr><h2>Offline AI result</h2><p class="warn"><strong>${modeName}</strong> · ${expWarning}</p>
+    <div class="grid"><div class="panel"><div class="muted">Binary model output</div><div class="result">${anemic?'Anemic':'Non-Anemic'}</div><p>Model score: <strong>${fmt(p)}</strong></p><p>Original decision threshold: ${cfg.threshold.toFixed(4)}</p></div>
+    <div class="panel"><div class="muted">Predicted severity</div><div class="result">${cfg.severity_names[idx]}</div><p>Model class score: ${fmt(probs[idx])}</p></div>
+    <div class="panel"><div class="muted">Measured Hb reference</div><div class="result" style="font-size:1rem">${hbText}</div><p>${hb===''?'Optional':Number(hb).toFixed(1)+' g/dL'}</p></div></div>
+    <h3>Severity class probabilities (uncalibrated)</h3>${cfg.severity_names.map((name,i)=>`<div>${name}: ${fmt(probs[i])}<progress value="${probs[i]}" max="1"></progress></div>`).join('')}
+    <h3>Image attention</h3>${mode==='cbc'?'<p>No images supplied; image attention is not applicable.</p>':names.map((n,i)=>`<div>${labels[i]}: ${mask[i]?fmt(attention[i]):'Not provided'}</div>`).join('')}
+    <p class="muted">Mode: ${modeName}. Model: ${key}. Patient ID: ${safeID||'Not entered'}. No results saved or uploaded.</p>
+    <p class="warn">Research output, not a clinical diagnosis. Model scores are not calibrated patient-level risk probabilities. Image preprocessing and mode-specific validity require independent validation.</p>`;
+   result.classList.remove('hidden');
+   byId('progress').textContent='Inference completed locally.';
+ }catch(e){byId('progress').textContent='ERROR: '+e.message;console.error(e)}
+ finally{if(session&&typeof session.release==='function')await session.release().catch(()=>{});running=false;byId('run').disabled=false}
+}
+byId('run').addEventListener('click',run);byId('clear').addEventListener('click',()=>{if(!confirm('Clear all patient inputs and results?'))return;for(const el of document.querySelectorAll('input:not([type=radio])'))el.value='';document.querySelector('input[name=screening_mode][value=combined]').checked=true;for(const n of names){const img=byId('preview_'+n);if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);img.style.display='none'}byId('result').classList.add('hidden');byId('progress').textContent='';setMode()});
+byId('status').className=typeof ort==='undefined'?'error':'ok';byId('status').textContent=typeof ort==='undefined'?'ONNX Runtime Web not installed. See README_SETUP.txt.':'ONNX Runtime Web JavaScript loaded. Local model loading will be tested when you run a screening.';setMode();
+if('serviceWorker' in navigator && location.protocol !== 'file:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('PWA service worker not active:',e)));
+</script></body></html>
